@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>本地智能课程助教 · RAG</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <script>
+      // MathJax config: enable $$...$$ and \( ... \) rendering inside chat messages
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']],
+          processEscapes: true
+        },
+        options: {
+          skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="logo">RAG</div>
+          <div class="brandText">
+            <div class="title">智能课程助教</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardTitle">会话</div>
+          <div id="sessionList" class="sessionList">
+            <div class="docHint">暂无历史会话</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardTitle">系统状态</div>
+          <div id="status" class="status">
+            <div class="row"><span class="k">加载中…</span><span class="v"></span></div>
+          </div>
+          <div class="statusActions">
+            <button id="btnRefresh" class="btn secondary">刷新</button>
+            <button id="btnRebuild" class="btn warning">重建知识库</button>
+          </div>
+          <div id="rebuildLog" class="rebuildLog hidden"></div>
+          <div id="rebuildProgress" class="progressWrap hidden">
+            <div class="progressTop">
+              <div id="progressLabel" class="progressLabel">—</div>
+              <div id="progressPct" class="progressPct">0%</div>
+            </div>
+            <div class="progressBar">
+              <div id="progressFill" class="progressFill" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardTitle">生成参数</div>
+          <div class="form">
+            <label class="field">
+              <span class="label">Top K</span>
+              <input id="topK" type="number" min="1" max="20" step="1" value="3" />
+            </label>
+            <label class="field">
+              <span class="label">Temperature</span>
+              <input id="temperature" type="number" min="0" max="2" step="0.1" value="0.7" />
+            </label>
+            <label class="field">
+              <span class="label">Max tokens</span>
+              <input id="maxTokens" type="number" min="64" max="4096" step="64" value="1500" />
+            </label>
+            <label class="toggle">
+              <input id="includeContext" type="checkbox" />
+              <span>返回检索上下文（调试）</span>
+            </label>
+          </div>
+          <div class="hint">
+            Tips：如回答不够准确，先点“重建知识库”，再提高 Top K。
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="tiny">同源本地调用 · 不在浏览器暴露 API Key</div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="header">
+          <div class="headerLeft">
+            <div class="h1"><span id="chatTitle">对话</span></div>
+            <div class="h2" id="headerMeta">—</div>
+          </div>
+          <div class="headerRight">
+            <button id="btnRename" class="btn ghost">重命名</button>
+            <button id="btnNewChat" class="btn secondary">新增对话</button>
+          </div>
+        </header>
+
+        <section id="chat" class="chat"></section>
+
+        <section id="sources" class="sources hidden">
+          <div class="sourcesHeader">
+            <div class="sourcesTitle">本轮引用</div>
+            <button id="btnHideSources" class="btn ghost">收起</button>
+          </div>
+          <div id="sourcesList" class="sourcesList"></div>
+          <pre id="contextBox" class="contextBox hidden"></pre>
+        </section>
+
+        <footer class="composer">
+          <div class="inputWrap">
+            <textarea id="input" rows="1" placeholder="请输入你的问题（Shift+Enter 换行，Enter 发送）"></textarea>
+          </div>
+          <button id="btnAction" class="btn primary">发送</button>
+        </footer>
+      </main>
+    </div>
+
+    <script src="/assets/app.js"></script>
+
+    <!-- Rename modal (no window.prompt, avoids popup blockers) -->
+    <div id="renameModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="renameTitle">
+      <div class="modalBackdrop" data-close="1"></div>
+      <div class="modalCard">
+        <div id="renameTitle" class="modalTitle">重命名会话</div>
+        <div class="modalBody">
+          <input id="renameInput" type="text" maxlength="60" placeholder="请输入会话标题…" />
+        </div>
+        <div class="modalActions">
+          <button id="btnRenameCancel" class="btn secondary">取消</button>
+          <button id="btnRenameSave" class="btn primary">保存</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
+
